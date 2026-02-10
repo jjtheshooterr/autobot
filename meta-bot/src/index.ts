@@ -451,7 +451,13 @@ async function processPayload(payload: any, env: Env): Promise<void> {
               // No explicit date request - try slot matching
               const match = tryMatchSlot(text, slots);
 
-              if (match?.matched && match.slot) {
+              if (match?.requiresChoice) {
+                // User said "yes" but we need them to pick 1 or 2
+                console.log('[CHOICE REQUIRED] User needs to pick between 2 slots');
+                const time1 = slots[0].label.match(/(\d{1,2}:\d{2}\s*(?:AM|PM))/i)?.[1] || slots[0].label;
+                const time2 = slots[1].label.match(/(\d{1,2}:\d{2}\s*(?:AM|PM))/i)?.[1] || slots[1].label;
+                reply = `Great! Which time works better — 1 for ${time1} or 2 for ${time2}?`;
+              } else if (match?.matched && match.slot) {
                 console.log('[BOOKING] User selected slot:', match.slot.label);
               
               // ✅ NEW FLOW: Claim slot → Collect details → Create event
