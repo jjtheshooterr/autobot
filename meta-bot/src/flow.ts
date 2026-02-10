@@ -713,11 +713,28 @@ export function tryMatchSlot(text: string, slots: Slot[]): SlotMatchResult {
 
   const normalized = text.toLowerCase().trim();
 
-  // NEW: Handle confirmation words - match FIRST slot regardless of how many slots in context
-  // This allows "yes" to work even if we have 2 slots stored but only showed 1
+  // Handle confirmation words - but ONLY if we showed a single slot
+  // If we showed 2 slots (e.g., "12 or 3"), require them to pick a number
   const confirmWords = ['yes', 'yeah', 'yep', 'sure', 'ok', 'okay', 'sounds good', 'that works', 'perfect', 'great'];
-  if (confirmWords.some(word => normalized === word || normalized.includes(word))) {
-    return { matched: true, slot: slots[0] };
+  const isConfirmWord = confirmWords.some(word => normalized === word || normalized.includes(word));
+  
+  if (isConfirmWord) {
+    // Only auto-match if we have exactly 1 slot OR if both slots have the same time (duplicate)
+    if (slots.length === 1) {
+      return { matched: true, slot: slots[0] };
+    } else if (slots.length >= 2) {
+      // Check if both slots have different times
+      const time1 = slots[0].label.match(/(\d{1,2}:\d{2}\s*(?:AM|PM))/i)?.[1] || '';
+      const time2 = slots[1].label.match(/(\d{1,2}:\d{2}\s*(?:AM|PM))/i)?.[1] || '';
+      
+      if (time1 === time2) {
+        // Same time (duplicate) - auto-match first slot
+        return { matched: true, slot: slots[0] };
+      } else {
+        // Different times - don't match, let them pick 1 or 2
+        return { matched: false, requiresChoice: true };
+      }
+    }
   }
 
   // Try exact match: "1" or "2"
@@ -748,9 +765,33 @@ export function tryMatchSlot(text: string, slots: Slot[]): SlotMatchResult {
     }
   }
 
-  // Try time-only match (e.g., "3pm", "3:00 PM", "12:00", "noon", "12", "3")
+  // Try time-only match (e.g., "3pm", "3:00 PM", "12:00", "noon", "12", "3", "3:00")
   // Normalize user input to match slot times
   let userTime = normalized.replace(/\s/g, ''); // Remove spaces
+  
+  // Handle "3:00" or "12:00" (without AM/PM) - try matching against slots
+  if (/^\d{1,2}:\d{2}$/.test(userTime)) {
+    const [hourStr, minutes] = userTime.split(':');
+    const hour = parseInt(hourStr, 10);
+    
+    if (hour >= 1 && hour <= 12) {
+      // Try matching against both AM and PM slots
+      for (const slot of slots) {
+        const slotLower = slot.label.toLowerCase();
+        const timeMatch = slotLower.match(/(\d{1,2}):(\d{2})\s*(am|pm)/i);
+        
+        if (timeMatch) {
+          const slotHour = parseInt(timeMatch[1], 10);
+          const slotMinutes = timeMatch[2];
+          
+          // Match if hour and minutes match
+          if (slotHour === hour && slotMinutes === minutes) {
+            return { matched: true, slot };
+          }
+        }
+      }
+    }
+  }
   
   // Handle bare numbers that could be times (12, 3, etc.)
   // Only if they're reasonable appointment times (1-12)
