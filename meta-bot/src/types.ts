@@ -119,4 +119,5 @@ export type QuestionType =
 export interface SlotMatchResult {
   matched: boolean;
   slot?: Slot;
+  requiresChoice?: boolean;  // True when user said "yes" but needs to pick 1 or 2
 }
