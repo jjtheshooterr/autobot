@@ -1,4 +1,4 @@
-name = "sparkle-ig-webhook"
+name = " <yourwebhookname> "
 main = "src/index.ts"
 compatibility_date = "2026-02-03"
 
