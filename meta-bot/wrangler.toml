@@ -1,0 +1,21 @@
+name = "sparkle-ig-webhook"
+main = "src/index.ts"
+compatibility_date = "2026-02-03"
+
+[vars]
+GOOGLE_TIMEZONE = "America/Denver"
+SERVICE_NAME = "Full Detail"
+SERVICE_PRICE = "$229"
+
+# Secrets (set via: wrangler secret put SECRET_NAME)
+# FB_PAGE_ACCESS_TOKEN - Meta Page Access Token
+# META_APP_SECRET - Meta App Secret for signature verification
+# META_VERIFY_TOKEN - Meta Webhook Verify Token
+# SUPABASE_URL - Supabase project URL
+# SUPABASE_SERVICE_ROLE_KEY - Supabase service role key
+# GOOGLE_CALENDAR_ID - Google Calendar ID
+# GOOGLE_CLIENT_ID - Google OAuth Client ID
+# GOOGLE_CLIENT_SECRET - Google OAuth Client Secret
+# GOOGLE_REFRESH_TOKEN - Google OAuth Refresh Token
+# DEEPSEEK_API_KEY - DeepSeek API key for intelligent question answering
+# RESEND_API_KEY - Resend API key for email notifications
